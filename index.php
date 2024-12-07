@@ -1,117 +1,122 @@
 <?php
-// اتصال به دیتابیس
-$servername = "localhost";
-$username = "root";
-$password = "your_password";
-$dbname = "your_database";
+$conn = new mysqli('licenses', 'root', 'Tsf6jrThPTPRUA6f8cAbYEJg', 'ecstatic_driscoll', 3306);
+if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
-// اتصال به دیتابیس
-$conn = mysqli_connect($servername, $username, $password, $dbname);
-
-// چک کردن اتصال
-if (!$conn) {
-    die("اتصال به دیتابیس موفقیت‌آمیز نبود: " . mysqli_connect_error());
+if (!isset($_GET['name']) || !isset($_GET['pass'])) {
+    header("Location: login.php");
+    exit();
 }
 
-// عملیات نمایش داده‌ها
-$query = "SELECT * FROM your_table_name";
-$result = mysqli_query($conn, $query);
+$name = $_GET['name'];
+$pass = $_GET['pass'];
 
-// عملیات ویرایش داده‌ها
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_id'])) {
-    $id = $_POST['edit_id'];
-    $name = $_POST['name'];
-    $update_query = "UPDATE your_table_name SET name = '$name' WHERE id = $id";
-    mysqli_query($conn, $update_query);
-    header('Location: index.php'); // ریدایرکت برای بارگزاری مجدد
-}
+// گرفتن اطلاعات از دیتابیس
+$stmt = $conn->prepare("SELECT * FROM lic WHERE name = ? AND pass = ?");
+$stmt->bind_param("ss", $name, $pass);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
 
-// عملیات حذف داده‌ها
-if (isset($_GET['delete_id'])) {
-    $delete_id = $_GET['delete_id'];
-    $delete_query = "DELETE FROM your_table_name WHERE id = $delete_id";
-    mysqli_query($conn, $delete_query);
-    header('Location: index.php'); // ریدایرکت بعد از حذف
-}
-
-// عملیات ورود کاربر (برای نمایش صفحه اصلی)
-$logged_in = false; // فرض بر این است که کاربر هنوز وارد نشده
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['username']) && isset($_POST['password'])) {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    if ($username == "admin" && $password == "admin123") {  // این‌جا باید اعتبارسنجی واقعی انجام بشه
-        $logged_in = true;
-    }
+if (!$user) {
+    echo "<script>alert('نام کاربری یا رمز عبور اشتباه است!'); window.location.href='login.php';</script>";
+    exit();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fa">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پنل مدیریت دیتابیس</title>
-    <link rel="stylesheet" href="assets/style.css">
+    <title>پروفایل کاربری</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: right;
+            direction: rtl;
+            transition: background 0.5s ease;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 30px 25px;
+            width: 400px;
+            text-align: right;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .info {
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            color: #f1f1f1;
+            transition: transform 0.3s, background 0.3s;
+        }
+        .info:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+        }
+        .info strong {
+            color: #FFD700;
+        }
+        .color-picker {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+    </style>
 </head>
 <body>
-    <!-- صفحه ورود -->
-    <?php if (!$logged_in): ?>
-        <div class="login-container">
-            <h2>ورود به پنل مدیریت دیتابیس</h2>
-            <form action="index.php" method="POST">
-                <input type="text" name="username" placeholder="نام کاربری" required>
-                <input type="password" name="password" placeholder="کلمه عبور" required>
-                <button type="submit">ورود</button>
-            </form>
+    <div class="container">
+        <h1>پروفایل <?php echo htmlspecialchars($user['name']); ?></h1>
+        <div class="info"><strong>ایمیل:</strong> <?php echo htmlspecialchars($user['email']); ?></div>
+        <div class="info"><strong>تاریخ شروع:</strong> <?php echo htmlspecialchars($user['start']); ?></div>
+        <div class="info"><strong>تاریخ انقضا:</strong> <?php echo htmlspecialchars($user['exp']); ?></div>
+        <div class="info"><strong>روزهای باقی‌مانده:</strong> <?php echo htmlspecialchars($user['remaining_days']); ?></div>
+        
+        <!-- Color Picker -->
+        <div class="color-picker">
+            <div class="color-option" style="background: #667eea;" onclick="changeBackground('#667eea')"></div>
+            <div class="color-option" style="background: #43cea2;" onclick="changeBackground('#43cea2')"></div>
+            <div class="color-option" style="background: #ff7e5f;" onclick="changeBackground('#ff7e5f')"></div>
+            <div class="color-option" style="background: #6a11cb;" onclick="changeBackground('#6a11cb')"></div>
+            <div class="color-option" style="background: #f7971e;" onclick="changeBackground('#f7971e')"></div>
+            <div class="color-option" style="background: #a1c4fd;" onclick="changeBackground('#a1c4fd')"></div>
+            <div class="color-option" style="background: #fdc830;" onclick="changeBackground('#fdc830')"></div>
+            <div class="color-option" style="background: #8e2de2;" onclick="changeBackground('#8e2de2')"></div>
+            <div class="color-option" style="background: #ff4b1f;" onclick="changeBackground('#ff4b1f')"></div>
+            <div class="color-option" style="background: #f48c06;" onclick="changeBackground('#f48c06')"></div>
         </div>
-    <?php else: ?>
-        <!-- داشبورد -->
-        <div class="dashboard-container">
-            <h2>داشبورد مدیریت دیتابیس</h2>
-            <a href="#view-database">مشاهده دیتابیس</a>
-            <a href="#edit-database">ویرایش دیتابیس</a>
+    </div>
 
-            <!-- مشاهده دیتابیس -->
-            <div id="view-database">
-                <h3>مشاهده داده‌ها</h3>
-                <table>
-                    <tr>
-                        <th>ID</th>
-                        <th>نام</th>
-                        <th>عملیات</th>
-                    </tr>
-                    <?php while($row = mysqli_fetch_assoc($result)): ?>
-                        <tr>
-                            <td><?php echo $row['id']; ?></td>
-                            <td><?php echo $row['name']; ?></td>
-                            <td>
-                                <a href="#edit-database?id=<?php echo $row['id']; ?>">ویرایش</a>
-                                <a href="index.php?delete_id=<?php echo $row['id']; ?>">حذف</a>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                </table>
-            </div>
-
-            <!-- ویرایش دیتابیس -->
-            <?php if (isset($_GET['id'])): ?>
-                <div id="edit-database">
-                    <?php
-                    $edit_id = $_GET['id'];
-                    $edit_query = "SELECT * FROM your_table_name WHERE id = $edit_id";
-                    $edit_result = mysqli_query($conn, $edit_query);
-                    $edit_row = mysqli_fetch_assoc($edit_result);
-                    ?>
-                    <h3>ویرایش داده</h3>
-                    <form action="index.php" method="POST">
-                        <input type="hidden" name="edit_id" value="<?php echo $edit_row['id']; ?>">
-                        <input type="text" name="name" value="<?php echo $edit_row['name']; ?>" required>
-                        <button type="submit">ویرایش</button>
-                    </form>
-                </div>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
-
+    <script>
+        function changeBackground(color) {
+            document.body.style.background = color;
+        }
+    </script>
 </body>
 </html>
