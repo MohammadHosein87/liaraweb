@@ -1,29 +1,3 @@
-<?php
-$conn = new mysqli('licenses', 'root', 'Tsf6jrThPTPRUA6f8cAbYEJg', 'ecstatic_driscoll', 3306);
-if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
-
-if (!isset($_GET['name']) || !isset($_GET['pass'])) {
-    header("Location: login.php");
-    exit();
-}
-
-$name = $_GET['name'];
-$pass = $_GET['pass'];
-
-// گرفتن اطلاعات از دیتابیس
-$stmt = $conn->prepare("SELECT * FROM lic WHERE name = ? AND pass = ?");
-$stmt->bind_param("ss", $name, $pass);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
-if (!$user) {
-    echo "<script>alert('نام کاربری یا رمز عبور اشتباه است!'); window.location.href='login.php';</script>";
-    exit();
-}
-?>
-<!DOCTYPE html>
-<html lang="fa">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,7 +6,7 @@ if (!$user) {
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
         body {
             font-family: 'Vazirmatn', sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #43cea2, #185a9d); /* پیش‌فرض گرادیانت جدید */
             color: #fff;
             margin: 0;
             display: flex;
@@ -115,7 +89,7 @@ if (!$user) {
 
     <script>
         function changeBackground(color) {
-            document.body.style.background = color;
+            document.body.style.background = 'linear-gradient(135deg, ' + color + ', #185a9d)';
         }
     </script>
 </body>
