@@ -2,8 +2,8 @@
 $conn = new mysqli('licenses', 'root', 'Tsf6jrThPTPRUA6f8cAbYEJg', 'ecstatic_driscoll', 3306);
 if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
-// بررسی اینکه آیا پارامتر name و pass در URL وجود داره و به ترتیب برابر با MMD_Coder, M1387h1387 نباشه
-if ($_GET['name'] !== 'MMD_Coder' || $_GET['pass'] !== 'M1387h1387') {
+// بررسی اینکه آیا پارامتر name و pass در URL وجود داره و به ترتیب برابر با MMD_Coder, mmd نباشه
+if ($_GET['name'] !== 'MMD_Coder' || $_GET['pass'] !== 'mmd') {
     die('Access denied');
     header("Location: login.php");
     exit();

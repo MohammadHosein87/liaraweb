@@ -1,3 +1,36 @@
+<?php
+$conn = new mysqli('licenses', 'root', 'Tsf6jrThPTPRUA6f8cAbYEJg', 'ecstatic_driscoll', 3306);
+if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+
+// بررسی ورودی‌ها
+if (!isset($_GET['name']) || !isset($_GET['pass'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$name = $_GET['name'];
+$pass = $_GET['pass'];
+
+// گرفتن اطلاعات از دیتابیس
+$stmt = $conn->prepare("SELECT * FROM lic WHERE name = ? AND pass = ?");
+$stmt->bind_param("ss", $name, $pass);
+$stmt->execute();
+$result = $stmt->get_result();
+
+// بررسی نتیجه کوئری
+$user = $result->fetch_assoc();
+if (!$user) {
+    echo "<script>alert('نام کاربری یا رمز عبور اشتباه است!'); window.location.href='login.php';</script>";
+    exit();
+}
+
+// بررسی وجود کلیدهای مورد نیاز
+if (!isset($user['name']) || !isset($user['email']) || !isset($user['start']) || !isset($user['exp']) || !isset($user['remaining_days'])) {
+    die("اطلاعات کاربری کامل نیست.");
+}
+?>
+<!DOCTYPE html>
+<html lang="fa">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -6,7 +39,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
         body {
             font-family: 'Vazirmatn', sans-serif;
-            background: linear-gradient(135deg, #43cea2, #185a9d); /* پیش‌فرض گرادیانت جدید */
+            background: linear-gradient(135deg, #43cea2, #185a9d);
             color: #fff;
             margin: 0;
             display: flex;
@@ -62,9 +95,29 @@
         .color-option:hover {
             transform: scale(1.1);
         }
+        /* دکمه پروفایل شخصی */
+        .profile-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #43cea2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .profile-btn:hover {
+            background-color: #185a9d;
+        }
     </style>
 </head>
 <body>
+    <!-- دکمه پروفایل شخصی -->
+    <button class="profile-btn" onclick="window.location.href='profile.html'">پروفایل شخصی <?php echo htmlspecialchars($user['name']); ?></button>
+
     <div class="container">
         <h1>پروفایل <?php echo htmlspecialchars($user['name']); ?></h1>
         <div class="info"><strong>ایمیل:</strong> <?php echo htmlspecialchars($user['email']); ?></div>
@@ -74,22 +127,27 @@
         
         <!-- Color Picker -->
         <div class="color-picker">
-            <div class="color-option" style="background: #667eea;" onclick="changeBackground('#667eea')"></div>
-            <div class="color-option" style="background: #43cea2;" onclick="changeBackground('#43cea2')"></div>
-            <div class="color-option" style="background: #ff7e5f;" onclick="changeBackground('#ff7e5f')"></div>
-            <div class="color-option" style="background: #6a11cb;" onclick="changeBackground('#6a11cb')"></div>
-            <div class="color-option" style="background: #f7971e;" onclick="changeBackground('#f7971e')"></div>
-            <div class="color-option" style="background: #a1c4fd;" onclick="changeBackground('#a1c4fd')"></div>
-            <div class="color-option" style="background: #fdc830;" onclick="changeBackground('#fdc830')"></div>
-            <div class="color-option" style="background: #8e2de2;" onclick="changeBackground('#8e2de2')"></div>
-            <div class="color-option" style="background: #ff4b1f;" onclick="changeBackground('#ff4b1f')"></div>
-            <div class="color-option" style="background: #f48c06;" onclick="changeBackground('#f48c06')"></div>
+            <div class="color-option" style="background: #667eea;" onclick="changeBackground('#667eea', '#185a9d')"></div>
+            <div class="color-option" style="background: #43cea2;" onclick="changeBackground('#43cea2', '#185a9d')"></div>
+            <div class="color-option" style="background: #ff7e5f;" onclick="changeBackground('#ff7e5f', '#185a9d')"></div>
+            <div class="color-option" style="background: #6a11cb;" onclick="changeBackground('#6a11cb', '#185a9d')"></div>
+            <div class="color-option" style="background: #f7971e;" onclick="changeBackground('#f7971e', '#185a9d')"></div>
+            <div class="color-option" style="background: #a1c4fd;" onclick="changeBackground('#a1c4fd', '#185a9d')"></div>
+            <div class="color-option" style="background: #fdc830;" onclick="changeBackground('#fdc830', '#185a9d')"></div>
+            <div class="color-option" style="background: #8e2de2;" onclick="changeBackground('#8e2de2', '#185a9d')"></div>
+            <div class="color-option" style="background: #ff4b1f;" onclick="changeBackground('#ff4b1f', '#185a9d')"></div>
+            <div class="color-option" style="background: #f48c06;" onclick="changeBackground('#f48c06', '#185a9d')"></div>
         </div>
     </div>
 
     <script>
-        function changeBackground(color) {
-            document.body.style.background = 'linear-gradient(135deg, ' + color + ', #185a9d)';
+        function changeBackground(color1, color2) {
+            const avgColor = `rgb(${(parseInt(color1.slice(1,3), 16) + parseInt(color2.slice(1,3), 16)) / 2}, ${(parseInt(color1.slice(3,5), 16) + parseInt(color2.slice(3,5), 16)) / 2}, ${(parseInt(color1.slice(5,7), 16) + parseInt(color2.slice(5,7), 16)) / 2})`;
+            document.body.style.transition = 'background 2s ease';
+            document.body.style.background = avgColor;
+            setTimeout(() => {
+                document.body.style.background = 'linear-gradient(135deg, ' + color1 + ', ' + color2 + ')';
+            }, 2000);
         }
     </script>
 </body>

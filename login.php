@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $pass = $_POST['pass']; // پسورد
 
     // بررسی اینکه نام کاربری و پسورد برابر با مقدارهای مشخص شده باشد
-    if ($name == "MMD_Coder" && $pass == "M1387h1387") {
+    if ($name == "MMD_Coder" && $pass == "mmd") {
         // ارسال کاربر به admin.php همراه با اطلاعات ورود در URL
         // مثلاً با ارسال نام کاربری و پسورد از طریق URL (GET request)
         header("Location: admin.php?name=$name&pass=$pass");
